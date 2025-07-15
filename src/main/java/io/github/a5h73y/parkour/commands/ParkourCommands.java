@@ -759,6 +759,96 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
         TranslationUtils.sendMessage(player, "&8Remember: &b() &7means required, &b[] &7means optional.", false);
     }
 
+
+    // Tambahkan method ini di dalam class ParkourCommands
+    
+    /**
+     * Handle back checkpoint command
+     */
+    private void handleBackCheckpoint(Player player, int targetCheckpoint) {
+        ParkourSession session = ParkourSession.getParkourSession(player);
+        if (session == null) {
+            player.sendMessage(Utils.getTranslation("Error.NotOnCourse", false));
+            return;
+        }
+        
+        String courseName = session.getCourseName();
+        int currentCheckpoint = session.getCheckpoint();
+        
+        // Validasi checkpoint
+        if (targetCheckpoint < 0) {
+            player.sendMessage(Utils.getTranslation("Error.InvalidAmount", false)
+                    .replace("%AMOUNT%", String.valueOf(targetCheckpoint)));
+            return;
+        }
+        
+        if (targetCheckpoint >= currentCheckpoint) {
+            player.sendMessage(Utils.color("&c[Parkour] Checkpoint harus lebih kecil dari checkpoint saat ini (" + currentCheckpoint + ")"));
+            return;
+        }
+        
+        // Teleport ke checkpoint yang diminta
+        Location checkpointLocation = CheckpointMethods.getCheckpointLocation(courseName, targetCheckpoint);
+        if (checkpointLocation == null) {
+            player.sendMessage(Utils.color("&c[Parkour] Checkpoint " + targetCheckpoint + " tidak ditemukan!"));
+            return;
+        }
+        
+        // Update session checkpoint
+        session.setCheckpoint(targetCheckpoint);
+        
+        // Teleport player
+        player.teleport(checkpointLocation);
+        player.sendMessage(Utils.color("&a[Parkour] Berhasil kembali ke checkpoint " + targetCheckpoint));
+        
+        // Update statistik jika diperlukan
+        CourseMethods.increaseStatistic(player.getName(), courseName, "TimesReset");
+    }
+    
+    /**
+     * Handle next checkpoint command
+     */
+    private void handleNextCheckpoint(Player player, int targetCheckpoint) {
+        ParkourSession session = ParkourSession.getParkourSession(player);
+        if (session == null) {
+            player.sendMessage(Utils.getTranslation("Error.NotOnCourse", false));
+            return;
+        }
+        
+        String courseName = session.getCourseName();
+        int currentCheckpoint = session.getCheckpoint();
+        
+        // Validasi checkpoint
+        if (targetCheckpoint <= currentCheckpoint) {
+            player.sendMessage(Utils.color("&c[Parkour] Checkpoint harus lebih besar dari checkpoint saat ini (" + currentCheckpoint + ")"));
+            return;
+        }
+        
+        // Cek apakah checkpoint exists
+        Location checkpointLocation = CheckpointMethods.getCheckpointLocation(courseName, targetCheckpoint);
+        if (checkpointLocation == null) {
+            player.sendMessage(Utils.color("&c[Parkour] Checkpoint " + targetCheckpoint + " tidak ditemukan!"));
+            return;
+        }
+        
+        // Cek permission untuk skip checkpoint (optional)
+        if (!player.hasPermission("parkour.admin") && !player.hasPermission("parkour.checkpoint.skip")) {
+            player.sendMessage(Utils.color("&c[Parkour] Anda tidak memiliki permission untuk skip checkpoint!"));
+            return;
+        }
+        
+        // Update session checkpoint
+        session.setCheckpoint(targetCheckpoint);
+        
+        // Teleport player
+        player.teleport(checkpointLocation);
+        player.sendMessage(Utils.color("&a[Parkour] Berhasil skip ke checkpoint " + targetCheckpoint));
+        
+        // Update statistik jika diperlukan
+        CourseMethods.increaseStatistic(player.getName(), courseName, "TimesReset");
+    }
+
+    
     /**
      * Display all the available Parkour Sign Commands.
      * @param player player
