@@ -633,6 +633,54 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
                 displaySignCommands(player);
                 break;
 
+// Tambahkan case ini dalam method onCommand() di ParkourCommands.java
+// Setelah case yang sudah ada
+
+            case "backcheckpoint":
+            case "bc":
+                if (args.length < 2) {
+                    player.sendMessage(Utils.getTranslation("Error.Syntax", false)
+                            .replace("%SYNTAX%", "/pa backcheckpoint (checkpoint)"));
+                    return false;
+                }
+                
+                if (!ParkourSession.isPlaying(player)) {
+                    player.sendMessage(Utils.getTranslation("Error.NotOnCourse", false));
+                    return false;
+                }
+                
+                try {
+                    int targetCheckpoint = Integer.parseInt(args[1]);
+                    handleBackCheckpoint(player, targetCheckpoint);
+                } catch (NumberFormatException e) {
+                    player.sendMessage(Utils.getTranslation("Error.InvalidAmount", false)
+                            .replace("%AMOUNT%", args[1]));
+                }
+                break;
+            
+            case "nextcheckpoint":
+            case "nc":
+                if (args.length < 2) {
+                    player.sendMessage(Utils.getTranslation("Error.Syntax", false)
+                            .replace("%SYNTAX%", "/pa nextcheckpoint (checkpoint)"));
+                    return false;
+                }
+                
+                if (!ParkourSession.isPlaying(player)) {
+                    player.sendMessage(Utils.getTranslation("Error.NotOnCourse", false));
+                    return false;
+                }
+                
+                try {
+                    int targetCheckpoint = Integer.parseInt(args[1]);
+                    handleNextCheckpoint(player, targetCheckpoint);
+                } catch (NumberFormatException e) {
+                    player.sendMessage(Utils.getTranslation("Error.InvalidAmount", false)
+                            .replace("%AMOUNT%", args[1]));
+                }
+                break;
+                
+
             default:
                 TranslationUtils.sendMessage(player, "Invalid page!");
                 displayParkourCommandsMenu(player);
