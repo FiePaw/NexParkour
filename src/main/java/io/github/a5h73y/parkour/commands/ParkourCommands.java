@@ -559,6 +559,71 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
                         commandLabel.replace("set", ""), args.length > 2 ? args[2] : null);
                 break;
 
+            // Tambahkan case ini dalam switch statement method onCommand() di ParkourCommands.java
+            // Pastikan method return type adalah boolean dan tambahkan return true; di akhir setiap case
+            
+            case "backcheckpoint":
+            case "bc":
+                if (!sender.hasPermission("parkour.checkpoint.back")) {
+                    TranslationUtils.sendMessage(sender, "Error.NoPermission");
+                    return true;
+                }
+                
+                if (args.length < 2) {
+                    TranslationUtils.sendMessage(sender, "Error.Syntax", "/pa backcheckpoint (checkpoint)");
+                    return true;
+                }
+                
+                if (!(sender instanceof Player)) {
+                    TranslationUtils.sendMessage(sender, "Error.OnlyPlayers");
+                    return true;
+                }
+                
+                Player player = (Player) sender;
+                if (!ParkourSession.isParkourSession(player)) {
+                    TranslationUtils.sendMessage(sender, "Error.NotOnCourse");
+                    return true;
+                }
+                
+                try {
+                    int targetCheckpoint = Integer.parseInt(args[1]);
+                    handleBackCheckpoint(player, targetCheckpoint);
+                } catch (NumberFormatException e) {
+                    TranslationUtils.sendMessage(sender, "Error.InvalidAmount", args[1]);
+                }
+                return true;
+            
+            case "nextcheckpoint":
+            case "nc":
+                if (!sender.hasPermission("parkour.checkpoint.next")) {
+                    TranslationUtils.sendMessage(sender, "Error.NoPermission");
+                    return true;
+                }
+                
+                if (args.length < 2) {
+                    TranslationUtils.sendMessage(sender, "Error.Syntax", "/pa nextcheckpoint (checkpoint)");
+                    return true;
+                }
+                
+                if (!(sender instanceof Player)) {
+                    TranslationUtils.sendMessage(sender, "Error.OnlyPlayers");
+                    return true;
+                }
+                
+                Player player = (Player) sender;
+                if (!ParkourSession.isParkourSession(player)) {
+                    TranslationUtils.sendMessage(sender, "Error.NotOnCourse");
+                    return true;
+                }
+                
+                try {
+                    int targetCheckpoint = Integer.parseInt(args[1]);
+                    handleNextCheckpoint(player, targetCheckpoint);
+                } catch (NumberFormatException e) {
+                    TranslationUtils.sendMessage(sender, "Error.InvalidAmount", args[1]);
+                }
+                return true;
+
             default:
                 TranslationUtils.sendTranslation("Error.UnknownCommand", player);
                 TranslationUtils.sendTranslation("Help.Commands", player);
@@ -631,63 +696,6 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
 
             case "signs":
                 displaySignCommands(player);
-                break;
-
-            // Tambahkan case ini dalam method onCommand() di ParkourCommands.java
-            // Setelah case yang sudah ada
-            
-            case "backcheckpoint":
-            case "bc":
-                if (!player.hasPermission("parkour.checkpoint.back")) {
-                    player.sendMessage(Utils.getTranslation("Error.NoPermission", false));
-                    return false;
-                }
-                
-                if (args.length < 2) {
-                    player.sendMessage(Utils.getTranslation("Error.Syntax", false)
-                            .replace("%SYNTAX%", "/pa backcheckpoint (checkpoint)"));
-                    return false;
-                }
-                
-                if (!ParkourSession.isPlaying(player)) {
-                    player.sendMessage(Utils.getTranslation("Error.NotOnCourse", false));
-                    return false;
-                }
-                
-                try {
-                    int targetCheckpoint = Integer.parseInt(args[1]);
-                    handleBackCheckpoint(player, targetCheckpoint);
-                } catch (NumberFormatException e) {
-                    player.sendMessage(Utils.getTranslation("Error.InvalidAmount", false)
-                            .replace("%AMOUNT%", args[1]));
-                }
-                break;
-            
-            case "nextcheckpoint":
-            case "nc":
-                if (!player.hasPermission("parkour.checkpoint.next")) {
-                    player.sendMessage(Utils.getTranslation("Error.NoPermission", false));
-                    return false;
-                }
-                
-                if (args.length < 2) {
-                    player.sendMessage(Utils.getTranslation("Error.Syntax", false)
-                            .replace("%SYNTAX%", "/pa nextcheckpoint (checkpoint)"));
-                    return false;
-                }
-                
-                if (!ParkourSession.isPlaying(player)) {
-                    player.sendMessage(Utils.getTranslation("Error.NotOnCourse", false));
-                    return false;
-                }
-                
-                try {
-                    int targetCheckpoint = Integer.parseInt(args[1]);
-                    handleNextCheckpoint(player, targetCheckpoint);
-                } catch (NumberFormatException e) {
-                    player.sendMessage(Utils.getTranslation("Error.InvalidAmount", false)
-                            .replace("%AMOUNT%", args[1]));
-                }
                 break;
                 
 
@@ -770,7 +778,8 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
     }
 
 
-    // Tambahkan method ini di dalam class ParkourCommands
+      // Tambahkan method ini di dalam class ParkourCommands
+    // Pastikan method ini berada di dalam class dan menggunakan field 'parkour' yang sudah ada
     
     /**
      * Handle back checkpoint command
@@ -778,7 +787,7 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
     private void handleBackCheckpoint(Player player, int targetCheckpoint) {
         ParkourSession session = ParkourSession.getParkourSession(player);
         if (session == null) {
-            player.sendMessage(Utils.getTranslation("Error.NotOnCourse", false));
+            TranslationUtils.sendMessage(player, "Error.NotOnCourse");
             return;
         }
         
@@ -787,20 +796,20 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
         
         // Validasi checkpoint
         if (targetCheckpoint < 0) {
-            player.sendMessage(Utils.getTranslation("Error.InvalidAmount", false)
-                    .replace("%AMOUNT%", String.valueOf(targetCheckpoint)));
+            TranslationUtils.sendMessage(player, "Error.InvalidAmount", String.valueOf(targetCheckpoint));
             return;
         }
         
         if (targetCheckpoint >= currentCheckpoint) {
-            player.sendMessage(Utils.color("&c[Parkour] Checkpoint harus lebih kecil dari checkpoint saat ini (" + currentCheckpoint + ")"));
+            player.sendMessage(parkour.getPluginManager().getPrefix() + 
+                "Checkpoint harus lebih kecil dari checkpoint saat ini (" + currentCheckpoint + ")");
             return;
         }
         
-        // Teleport ke checkpoint yang diminta
-        Location checkpointLocation = CheckpointMethods.getCheckpointLocation(courseName, targetCheckpoint);
-        if (checkpointLocation == null) {
-            player.sendMessage(Utils.color("&c[Parkour] Checkpoint " + targetCheckpoint + " tidak ditemukan!"));
+        // Ambil checkpoint location
+        Checkpoint checkpoint = parkour.getCheckpointManager().getCheckpoint(courseName, targetCheckpoint);
+        if (checkpoint == null) {
+            TranslationUtils.sendMessage(player, "Error.UnknownCheckpoint", String.valueOf(targetCheckpoint));
             return;
         }
         
@@ -808,11 +817,15 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
         session.setCheckpoint(targetCheckpoint);
         
         // Teleport player
-        player.teleport(checkpointLocation);
-        player.sendMessage(Utils.color("&a[Parkour] Berhasil kembali ke checkpoint " + targetCheckpoint));
+        Location location = checkpoint.getLocation();
+        player.teleport(location);
         
-        // Update statistik jika diperlukan
-        CourseMethods.increaseStatistic(player.getName(), courseName, "TimesReset");
+        TranslationUtils.sendMessage(player, "Parkour.Checkpoint", String.valueOf(targetCheckpoint));
+        
+        // Play sound effect
+        if (parkour.getConfig().getBoolean("OnCourse.DisplayTitle")) {
+            PlayerUtils.playSound(player, Sound.BLOCK_NOTE_BLOCK_BELL, 1.0f, 1.0f);
+        }
     }
     
     /**
@@ -821,7 +834,7 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
     private void handleNextCheckpoint(Player player, int targetCheckpoint) {
         ParkourSession session = ParkourSession.getParkourSession(player);
         if (session == null) {
-            player.sendMessage(Utils.getTranslation("Error.NotOnCourse", false));
+            TranslationUtils.sendMessage(player, "Error.NotOnCourse");
             return;
         }
         
@@ -830,20 +843,21 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
         
         // Validasi checkpoint
         if (targetCheckpoint <= currentCheckpoint) {
-            player.sendMessage(Utils.color("&c[Parkour] Checkpoint harus lebih besar dari checkpoint saat ini (" + currentCheckpoint + ")"));
+            player.sendMessage(parkour.getPluginManager().getPrefix() + 
+                "Checkpoint harus lebih besar dari checkpoint saat ini (" + currentCheckpoint + ")");
             return;
         }
         
-        // Cek apakah checkpoint exists
-        Location checkpointLocation = CheckpointMethods.getCheckpointLocation(courseName, targetCheckpoint);
-        if (checkpointLocation == null) {
-            player.sendMessage(Utils.color("&c[Parkour] Checkpoint " + targetCheckpoint + " tidak ditemukan!"));
+        // Ambil checkpoint location
+        Checkpoint checkpoint = parkour.getCheckpointManager().getCheckpoint(courseName, targetCheckpoint);
+        if (checkpoint == null) {
+            TranslationUtils.sendMessage(player, "Error.UnknownCheckpoint", String.valueOf(targetCheckpoint));
             return;
         }
         
-        // Cek permission untuk skip checkpoint (optional)
+        // Cek permission untuk skip checkpoint
         if (!player.hasPermission("parkour.admin") && !player.hasPermission("parkour.checkpoint.skip")) {
-            player.sendMessage(Utils.color("&c[Parkour] Anda tidak memiliki permission untuk skip checkpoint!"));
+            TranslationUtils.sendMessage(player, "Error.NoPermission");
             return;
         }
         
@@ -851,13 +865,16 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
         session.setCheckpoint(targetCheckpoint);
         
         // Teleport player
-        player.teleport(checkpointLocation);
-        player.sendMessage(Utils.color("&a[Parkour] Berhasil skip ke checkpoint " + targetCheckpoint));
+        Location location = checkpoint.getLocation();
+        player.teleport(location);
         
-        // Update statistik jika diperlukan
-        CourseMethods.increaseStatistic(player.getName(), courseName, "TimesReset");
+        TranslationUtils.sendMessage(player, "Parkour.Checkpoint", String.valueOf(targetCheckpoint));
+        
+        // Play sound effect
+        if (parkour.getConfig().getBoolean("OnCourse.DisplayTitle")) {
+            PlayerUtils.playSound(player, Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 1.0f);
+        }
     }
-
     
     /**
      * Display all the available Parkour Sign Commands.
