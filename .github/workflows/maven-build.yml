@@ -2,7 +2,7 @@ name: Build
 
 env:
   artifact_name: 'Parkour-7.2.5'
-  release_type: '-RELEASE'
+  release_type: '-MODDED'
 
 on: push
 
