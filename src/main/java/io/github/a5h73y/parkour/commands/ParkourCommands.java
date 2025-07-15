@@ -16,7 +16,7 @@ import io.github.a5h73y.parkour.utility.TranslationUtils;
 import io.github.a5h73y.parkour.utility.PlayerUtils;
 import org.bukkit.Location;
 import org.bukkit.Sound;
-
+import org.bukkit.entity.Player;
 
 
 
