@@ -4,6 +4,23 @@ import static io.github.a5h73y.parkour.other.ParkourConstants.COMMAND_PLACEHOLDE
 import static io.github.a5h73y.parkour.other.ParkourConstants.DEFAULT;
 import static io.github.a5h73y.parkour.other.ParkourConstants.ERROR_INVALID_AMOUNT;
 
+
+
+
+// Tambahkan import statements yang diperlukan di bagian atas file ParkourCommands.java
+import io.github.a5h73y.parkour.enums.ParkourMode;
+import io.github.a5h73y.parkour.player.ParkourSession;
+import io.github.a5h73y.parkour.type.course.CourseInfo;
+import io.github.a5h73y.parkour.type.checkpoint.Checkpoint;
+import io.github.a5h73y.parkour.utility.TranslationUtils;
+import io.github.a5h73y.parkour.utility.PlayerUtils;
+import org.bukkit.Location;
+import org.bukkit.Sound;
+
+
+
+
+
 import com.google.gson.GsonBuilder;
 import io.github.a5h73y.parkour.Parkour;
 import io.github.a5h73y.parkour.gui.impl.JoinAllGui;
@@ -778,8 +795,7 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
     }
 
 
-      // Tambahkan method ini di dalam class ParkourCommands
-    // Pastikan method ini berada di dalam class dan menggunakan field 'parkour' yang sudah ada
+    // Tambahkan method ini di dalam class ParkourCommands
     
     /**
      * Handle back checkpoint command
@@ -801,8 +817,8 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
         }
         
         if (targetCheckpoint >= currentCheckpoint) {
-            player.sendMessage(parkour.getPluginManager().getPrefix() + 
-                "Checkpoint harus lebih kecil dari checkpoint saat ini (" + currentCheckpoint + ")");
+            TranslationUtils.sendMessage(player, "Parkour.Checkpoint.Back", 
+                String.valueOf(currentCheckpoint));
             return;
         }
         
@@ -820,12 +836,13 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
         Location location = checkpoint.getLocation();
         player.teleport(location);
         
-        TranslationUtils.sendMessage(player, "Parkour.Checkpoint", String.valueOf(targetCheckpoint));
+        TranslationUtils.sendMessage(player, "Parkour.Checkpoint.Set", String.valueOf(targetCheckpoint));
         
         // Play sound effect
-        if (parkour.getConfig().getBoolean("OnCourse.DisplayTitle")) {
-            PlayerUtils.playSound(player, Sound.BLOCK_NOTE_BLOCK_BELL, 1.0f, 1.0f);
-        }
+        PlayerUtils.playSound(player, Sound.BLOCK_NOTE_BLOCK_BELL, 1.0f, 1.0f);
+        
+        // Update statistik
+        parkour.getPlayerManager().addStatistic(player, "TimesReset", 1);
     }
     
     /**
@@ -843,8 +860,8 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
         
         // Validasi checkpoint
         if (targetCheckpoint <= currentCheckpoint) {
-            player.sendMessage(parkour.getPluginManager().getPrefix() + 
-                "Checkpoint harus lebih besar dari checkpoint saat ini (" + currentCheckpoint + ")");
+            TranslationUtils.sendMessage(player, "Parkour.Checkpoint.Next", 
+                String.valueOf(currentCheckpoint));
             return;
         }
         
@@ -868,12 +885,13 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
         Location location = checkpoint.getLocation();
         player.teleport(location);
         
-        TranslationUtils.sendMessage(player, "Parkour.Checkpoint", String.valueOf(targetCheckpoint));
+        TranslationUtils.sendMessage(player, "Parkour.Checkpoint.Set", String.valueOf(targetCheckpoint));
         
         // Play sound effect
-        if (parkour.getConfig().getBoolean("OnCourse.DisplayTitle")) {
-            PlayerUtils.playSound(player, Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 1.0f);
-        }
+        PlayerUtils.playSound(player, Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 1.0f);
+        
+        // Update statistik
+        parkour.getPlayerManager().addStatistic(player, "TimesReset", 1);
     }
     
     /**
