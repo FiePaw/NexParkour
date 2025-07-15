@@ -633,11 +633,16 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
                 displaySignCommands(player);
                 break;
 
-// Tambahkan case ini dalam method onCommand() di ParkourCommands.java
-// Setelah case yang sudah ada
-
+            // Tambahkan case ini dalam method onCommand() di ParkourCommands.java
+            // Setelah case yang sudah ada
+            
             case "backcheckpoint":
             case "bc":
+                if (!player.hasPermission("parkour.checkpoint.back")) {
+                    player.sendMessage(Utils.getTranslation("Error.NoPermission", false));
+                    return false;
+                }
+                
                 if (args.length < 2) {
                     player.sendMessage(Utils.getTranslation("Error.Syntax", false)
                             .replace("%SYNTAX%", "/pa backcheckpoint (checkpoint)"));
@@ -660,6 +665,11 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
             
             case "nextcheckpoint":
             case "nc":
+                if (!player.hasPermission("parkour.checkpoint.next")) {
+                    player.sendMessage(Utils.getTranslation("Error.NoPermission", false));
+                    return false;
+                }
+                
                 if (args.length < 2) {
                     player.sendMessage(Utils.getTranslation("Error.Syntax", false)
                             .replace("%SYNTAX%", "/pa nextcheckpoint (checkpoint)"));
