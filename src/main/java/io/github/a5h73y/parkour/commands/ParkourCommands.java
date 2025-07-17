@@ -4,23 +4,6 @@ import static io.github.a5h73y.parkour.other.ParkourConstants.COMMAND_PLACEHOLDE
 import static io.github.a5h73y.parkour.other.ParkourConstants.DEFAULT;
 import static io.github.a5h73y.parkour.other.ParkourConstants.ERROR_INVALID_AMOUNT;
 
-
-
-
-// Tambahkan import statements yang diperlukan di bagian atas file ParkourCommands.java
-import io.github.a5h73y.parkour.enums.ParkourMode;
-import io.github.a5h73y.parkour.player.ParkourSession;
-import io.github.a5h73y.parkour.type.course.CourseInfo;
-import io.github.a5h73y.parkour.type.checkpoint.Checkpoint;
-import io.github.a5h73y.parkour.utility.TranslationUtils;
-import io.github.a5h73y.parkour.utility.PlayerUtils;
-import org.bukkit.Location;
-import org.bukkit.Sound;
-import org.bukkit.entity.Player;
-
-
-
-
 import com.google.gson.GsonBuilder;
 import io.github.a5h73y.parkour.Parkour;
 import io.github.a5h73y.parkour.gui.impl.JoinAllGui;
@@ -33,6 +16,7 @@ import io.github.a5h73y.parkour.utility.TranslationUtils;
 import io.github.a5h73y.parkour.utility.ValidationUtils;
 import io.github.a5h73y.parkour.utility.permission.Permission;
 import io.github.a5h73y.parkour.utility.permission.PermissionUtils;
+import io.github.a5h73y.parkour.type.checkpoint.CheckpointManager;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -126,6 +110,31 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
 
                 parkour.getAdministrationManager().processAdminCommand(player, args[1], args[2], args);
                 break;
+
+            case "backcheckpoint":
+                if (!PermissionUtils.hasPermission(player, Permission.BASIC_TELEPORT_CHECKPOINT)) {
+                    return false;
+                }
+                if (args.length > 1) {
+                    String title = args[1];
+                    String subtitle = "Mengirim §eBackLevel";
+                    player.sendTitle(title, subtitle, 3, 20, 3);
+                }
+                parkour.getCheckpointManager().teleportToPreviousCheckpoint(player);
+                break;
+
+            case "nextcheckpoint":
+                if (!PermissionUtils.hasPermission(player, Permission.BASIC_TELEPORT_CHECKPOINT)) {
+                    return false;
+                }
+                if (args.length > 1) {
+                    String title = args[1];
+                    String subtitle = "Mengirim §bNextLevel";
+                    player.sendTitle(title, subtitle, 3, 20, 3);
+                }
+                parkour.getCheckpointManager().teleportToNextCheckpoint(player);
+                break;
+
 
             case "cache":
                 if (!PermissionUtils.hasPermission(player, Permission.ADMIN_ALL)) {
@@ -480,7 +489,7 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
             case "request":
             case "bug":
                 TranslationUtils.sendMessage(player, "To follow the official Parkour tutorials...");
-                TranslationUtils.sendMessage(player, "Click here:&3 https://a5h73y.github.io/Parkour/", false);
+                TranslationUtils.sendMessage(player, "Click here:&3 https://github.com/FiePaw/NexParkour", false);
                 TranslationUtils.sendMessage(player, "To Request a feature or to Report a bug...");
                 TranslationUtils.sendMessage(player, "Click here:&3 https://github.com/A5H73Y/Parkour/issues", false);
                 break;
@@ -490,10 +499,8 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
             case "about":
             case "version":
                 TranslationUtils.sendMessage(player, "Server is running Parkour &6" + parkour.getDescription().getVersion());
-                TranslationUtils.sendMessage(player, "Plugin proudly created by &bA5H73Y &f& &bsteve4744", false);
-                TranslationUtils.sendMessage(player, "Project Page:&b https://www.spigotmc.org/resources/parkour.23685/", false);
-                TranslationUtils.sendMessage(player, "Tutorials:&b https://a5h73y.github.io/Parkour/", false);
-                TranslationUtils.sendMessage(player, "Discord Server:&b https://discord.gg/Gc8RGYr", false);
+                TranslationUtils.sendMessage(player, "Plugin proudly created by &bA5H73Y &f& &bsteve4744 &fand modded by &cFiePaw", false);
+                TranslationUtils.sendMessage(player, "Tutorials:&b https://github.com/FiePaw/NexParkour", false);
                 break;
 
             case "accept":
@@ -557,89 +564,58 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
             case "setautostart":
             case "setcreator":
             case "setmaxdeaths":
-            case "setmaxtime":
-            case "setminimumlevel":
-            case "maxfallticks":
-            case "challengeonly":
-            case "prize":
-            case "setprize":
-            case "setparkourmode":
-                if (!PermissionUtils.hasPermission(player, Permission.ADMIN_COURSE)) {
+            case "resetdeath":
+                if (!PermissionUtils.hasPermission(player, Permission.ADMIN_ALL)) {
                     return false;
                 }
-
-                if (!ValidationUtils.validateArgs(player, args, 2, 3)) {
+                if (!ValidationUtils.validateArgs(player, args, 2)) {
+                    TranslationUtils.sendMessage(player, "&cUsage: /pa resetdeath <player>");
                     return false;
                 }
-
-                parkour.getCourseSettingsManager().performAction(player, args[1],
-                        commandLabel.replace("set", ""), args.length > 2 ? args[2] : null);
+                OfflinePlayer targetReset = Bukkit.getOfflinePlayer(args[1]);
+                if (targetReset == null || !targetReset.isOnline()) {
+                    TranslationUtils.sendMessage(player, "&cPlayer not found or not online.");
+                    return false;
+                }
+                Player onlineTargetReset = targetReset.getPlayer();
+                io.github.a5h73y.parkour.type.player.session.ParkourSession sessionReset =
+                    parkour.getParkourSessionManager().getParkourSession(onlineTargetReset);
+                if (sessionReset == null) {
+                    TranslationUtils.sendMessage(player, "&cPlayer is not currently on a course.");
+                    return false;
+                }
+                sessionReset.setDeaths(0);
+                TranslationUtils.sendMessage(player, "&aSuccessfully reset deaths for &e" + args[1]);
                 break;
 
-            // Tambahkan case ini dalam switch statement method onCommand() di ParkourCommands.java
-            // Pastikan method return type adalah boolean dan tambahkan return true; di akhir setiap case
-            
-            case "backcheckpoint":
-            case "bc":
-                if (!sender.hasPermission("parkour.checkpoint.back")) {
-                    TranslationUtils.sendMessage(sender, "Error.NoPermission");
-                    return true;
+            case "setdeath":
+                if (!PermissionUtils.hasPermission(player, Permission.ADMIN_ALL)) {
+                    return false;
                 }
-                
-                if (args.length < 2) {
-                    TranslationUtils.sendMessage(sender, "Error.Syntax", "/pa backcheckpoint (checkpoint)");
-                    return true;
+                if (!ValidationUtils.validateArgs(player, args, 3)) {
+                    TranslationUtils.sendMessage(player, "&cUsage: /pa setdeath <player> <amount>");
+                    return false;
                 }
-                
-                if (!(sender instanceof Player)) {
-                    TranslationUtils.sendMessage(sender, "Error.OnlyPlayers");
-                    return true;
+                OfflinePlayer targetSet = Bukkit.getOfflinePlayer(args[1]);
+                if (targetSet == null || !targetSet.isOnline()) {
+                    TranslationUtils.sendMessage(player, "&cPlayer not found or not online.");
+                    return false;
                 }
-                
-                Player player = (Player) sender;
-                if (!ParkourSession.isParkourSession(player)) {
-                    TranslationUtils.sendMessage(sender, "Error.NotOnCourse");
-                    return true;
+                if (!ValidationUtils.isPositiveInteger(args[2])) {
+                    TranslationUtils.sendMessage(player, "&cAmount must be a positive integer.");
+                    return false;
                 }
-                
-                try {
-                    int targetCheckpoint = Integer.parseInt(args[1]);
-                    handleBackCheckpoint(player, targetCheckpoint);
-                } catch (NumberFormatException e) {
-                    TranslationUtils.sendMessage(sender, "Error.InvalidAmount", args[1]);
+                Player onlineTargetSet = targetSet.getPlayer();
+                io.github.a5h73y.parkour.type.player.session.ParkourSession sessionSet =
+                    parkour.getParkourSessionManager().getParkourSession(onlineTargetSet);
+                if (sessionSet == null) {
+                    TranslationUtils.sendMessage(player, "&cPlayer is not currently on a course.");
+                    return false;
                 }
-                return true;
-            
-            case "nextcheckpoint":
-            case "nc":
-                if (!sender.hasPermission("parkour.checkpoint.next")) {
-                    TranslationUtils.sendMessage(sender, "Error.NoPermission");
-                    return true;
-                }
-                
-                if (args.length < 2) {
-                    TranslationUtils.sendMessage(sender, "Error.Syntax", "/pa nextcheckpoint (checkpoint)");
-                    return true;
-                }
-                
-                if (!(sender instanceof Player)) {
-                    TranslationUtils.sendMessage(sender, "Error.OnlyPlayers");
-                    return true;
-                }
-                
-                Player player = (Player) sender;
-                if (!ParkourSession.isParkourSession(player)) {
-                    TranslationUtils.sendMessage(sender, "Error.NotOnCourse");
-                    return true;
-                }
-                
-                try {
-                    int targetCheckpoint = Integer.parseInt(args[1]);
-                    handleNextCheckpoint(player, targetCheckpoint);
-                } catch (NumberFormatException e) {
-                    TranslationUtils.sendMessage(sender, "Error.InvalidAmount", args[1]);
-                }
-                return true;
+                int deathAmount = Integer.parseInt(args[2]);
+                sessionSet.setDeaths(deathAmount);
+                TranslationUtils.sendMessage(player, "&aSet deaths for &e" + args[1] + " &ato &e" + deathAmount);
+                break;
 
             default:
                 TranslationUtils.sendTranslation("Error.UnknownCommand", player);
@@ -714,7 +690,6 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
             case "signs":
                 displaySignCommands(player);
                 break;
-                
 
             default:
                 TranslationUtils.sendMessage(player, "Invalid page!");
@@ -794,106 +769,6 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
         TranslationUtils.sendMessage(player, "&8Remember: &b() &7means required, &b[] &7means optional.", false);
     }
 
-
-    // Tambahkan method ini di dalam class ParkourCommands
-    
-    /**
-     * Handle back checkpoint command
-     */
-    private void handleBackCheckpoint(Player player, int targetCheckpoint) {
-        ParkourSession session = ParkourSession.getParkourSession(player);
-        if (session == null) {
-            TranslationUtils.sendMessage(player, "Error.NotOnCourse");
-            return;
-        }
-        
-        String courseName = session.getCourseName();
-        int currentCheckpoint = session.getCheckpoint();
-        
-        // Validasi checkpoint
-        if (targetCheckpoint < 0) {
-            TranslationUtils.sendMessage(player, "Error.InvalidAmount", String.valueOf(targetCheckpoint));
-            return;
-        }
-        
-        if (targetCheckpoint >= currentCheckpoint) {
-            TranslationUtils.sendMessage(player, "Parkour.Checkpoint.Back", 
-                String.valueOf(currentCheckpoint));
-            return;
-        }
-        
-        // Ambil checkpoint location
-        Checkpoint checkpoint = parkour.getCheckpointManager().getCheckpoint(courseName, targetCheckpoint);
-        if (checkpoint == null) {
-            TranslationUtils.sendMessage(player, "Error.UnknownCheckpoint", String.valueOf(targetCheckpoint));
-            return;
-        }
-        
-        // Update session checkpoint
-        session.setCheckpoint(targetCheckpoint);
-        
-        // Teleport player
-        Location location = checkpoint.getLocation();
-        player.teleport(location);
-        
-        TranslationUtils.sendMessage(player, "Parkour.Checkpoint.Set", String.valueOf(targetCheckpoint));
-        
-        // Play sound effect
-        PlayerUtils.playSound(player, Sound.BLOCK_NOTE_BLOCK_BELL, 1.0f, 1.0f);
-        
-        // Update statistik
-        parkour.getPlayerManager().addStatistic(player, "TimesReset", 1);
-    }
-    
-    /**
-     * Handle next checkpoint command
-     */
-    private void handleNextCheckpoint(Player player, int targetCheckpoint) {
-        ParkourSession session = ParkourSession.getParkourSession(player);
-        if (session == null) {
-            TranslationUtils.sendMessage(player, "Error.NotOnCourse");
-            return;
-        }
-        
-        String courseName = session.getCourseName();
-        int currentCheckpoint = session.getCheckpoint();
-        
-        // Validasi checkpoint
-        if (targetCheckpoint <= currentCheckpoint) {
-            TranslationUtils.sendMessage(player, "Parkour.Checkpoint.Next", 
-                String.valueOf(currentCheckpoint));
-            return;
-        }
-        
-        // Ambil checkpoint location
-        Checkpoint checkpoint = parkour.getCheckpointManager().getCheckpoint(courseName, targetCheckpoint);
-        if (checkpoint == null) {
-            TranslationUtils.sendMessage(player, "Error.UnknownCheckpoint", String.valueOf(targetCheckpoint));
-            return;
-        }
-        
-        // Cek permission untuk skip checkpoint
-        if (!player.hasPermission("parkour.admin") && !player.hasPermission("parkour.checkpoint.skip")) {
-            TranslationUtils.sendMessage(player, "Error.NoPermission");
-            return;
-        }
-        
-        // Update session checkpoint
-        session.setCheckpoint(targetCheckpoint);
-        
-        // Teleport player
-        Location location = checkpoint.getLocation();
-        player.teleport(location);
-        
-        TranslationUtils.sendMessage(player, "Parkour.Checkpoint.Set", String.valueOf(targetCheckpoint));
-        
-        // Play sound effect
-        PlayerUtils.playSound(player, Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 1.0f);
-        
-        // Update statistik
-        parkour.getPlayerManager().addStatistic(player, "TimesReset", 1);
-    }
-    
     /**
      * Display all the available Parkour Sign Commands.
      * @param player player
