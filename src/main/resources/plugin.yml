@@ -15,14 +15,3 @@ commands:
   paconsole:
     aliases: [pac, parkourc, consolepa]
     description: Parkour console commands
-
-permissions:
-  parkour.checkpoint.back:
-    description: Allows player to use back checkpoint command
-    default: true
-  parkour.checkpoint.next:
-    description: Allows player to use next checkpoint command
-    default: op
-  parkour.checkpoint.skip:
-    description: Allows player to skip checkpoints
-    default: op
