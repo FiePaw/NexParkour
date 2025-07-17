@@ -119,6 +119,41 @@ public class CheckpointManager extends AbstractPluginReceiver {
         PlayerUtils.teleportToLocation(player, course.getCheckpoints().get(checkpoint).getLocation());
         String message = TranslationUtils.getValueTranslation("Parkour.Teleport", courseName);
         TranslationUtils.sendMessage(player, checkpoint > 0 ? message + " &f(&3" + checkpoint + "&f)" : message, false);
+
+        // Update checkpoint index di session agar sesuai dengan checkpoint yang dituju
+        parkour.getParkourSessionManager().getParkourSession(player).setCurrentCheckpoint(checkpoint);
+    }
+
+    public void teleportToPreviousCheckpoint(Player player) {
+        Integer current = parkour.getParkourSessionManager().getCheckpointIndex(player);
+        String courseName = parkour.getPlayerManager().getCurrentCourse(player);
+        if (current == null || courseName == null) {
+            TranslationUtils.sendMessage(player, "&cTidak ada checkpoint sebelumnya.");
+            return;
+        }
+        if (current <= 0) {
+            TranslationUtils.sendMessage(player, "&cSudah di checkpoint awal.");
+            return;
+        }
+        parkour.getCheckpointManager().teleportCheckpoint(player, courseName, current - 1);
+        // Update checkpoint index di session agar bisa mundur lagi
+        parkour.getParkourSessionManager().getParkourSession(player).setCurrentCheckpoint(current - 1);
+    }
+
+    public void teleportToNextCheckpoint(Player player) {
+        // Ambil checkpoint saat ini, tambah 1, teleport jika valid
+        Integer current = parkour.getParkourSessionManager().getCheckpointIndex(player);
+        String course = parkour.getPlayerManager().getCurrentCourse(player);
+        if (current == null || course == null) {
+            TranslationUtils.sendMessage(player, "&cTidak ada checkpoint berikutnya.");
+            return;
+        }
+        int maxCheckpoint = parkour.getCourseManager().getCourseCheckpointAmount(course);
+        if (current >= maxCheckpoint) {
+            TranslationUtils.sendMessage(player, "&cSudah di checkpoint terakhir.");
+            return;
+        }
+        parkour.getCheckpointManager().teleportCheckpoint(player, course, current + 1);
     }
 
     /**

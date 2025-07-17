@@ -195,6 +195,14 @@ public class ParkourSession implements ParkourSerializable {
     }
 
     /**
+     * Set the current death count for this session.
+     * @param deaths jumlah death yang ingin di-set
+     */
+    public void setDeaths(int deaths) {
+        this.deaths = deaths;
+    }
+
+    /**
      * Get current checkpoint number.
      * @return current checkpoint
      */

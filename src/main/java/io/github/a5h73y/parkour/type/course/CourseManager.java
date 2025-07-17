@@ -572,6 +572,14 @@ public class CourseManager extends AbstractPluginReceiver {
         return true;
     }
 
+    public int getCourseCheckpointAmount(String courseName) {
+        Course course = findByName(courseName);
+        if (course == null) {
+            return 0;
+        }
+        return course.getNumberOfCheckpoints();
+    }
+
     private void populateCourseCache() {
         parkour.getConfigManager().getAllCourseNames()
                 .forEach(courseName -> {

@@ -1287,7 +1287,7 @@ public class PlayerManager extends AbstractPluginReceiver implements Initializab
 		String finishBroadcast = TranslationUtils.replaceAllParkourPlaceholders(
 				TranslationUtils.getTranslation("Parkour.FinishBroadcast"), player, session);
 
-		String scope = parkour.getParkourConfig().getOrDefault("OnFinish.BroadcastLevel", "WORLD");
+		String scope = parkour.getParkourConfig().getString("OnFinish.BroadcastLevel");
 		TranslationUtils.announceParkourMessage(player, scope, finishBroadcast);
 	}
 
@@ -1880,4 +1880,18 @@ public class PlayerManager extends AbstractPluginReceiver implements Initializab
 
 		return true;
 	}
+
+	/**
+	 * Get the current course name the player is playing.
+	 * @param player player
+	 * @return course name or null
+	 */
+	public String getCurrentCourse(Player player) {
+		ParkourSession session = parkour.getParkourSessionManager().getParkourSession(player);
+		if (session == null) {
+			return null;
+		}
+		return session.getCourseName();
+	}
+
 }
