@@ -585,7 +585,7 @@ public class ParkourCommands extends AbstractPluginReceiver implements CommandEx
                     return false;
                 }
                 sessionReset.setDeaths(0);
-                TranslationUtils.sendMessage(player, "&aSuccessfully reset deaths for &e" + args[1]);
+                TranslationUtils.sendMessage(player, "&aSuccessfully reseting deaths for &e" + args[1]);
                 break;
 
             case "setdeath":
